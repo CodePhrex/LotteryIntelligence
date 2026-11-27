@@ -1,6 +1,7 @@
 """Non-destructive SQLite snapshots using the online backup API."""
 import pathlib
 import sqlite3
+from contextlib import closing
 import tempfile
 import os
 
@@ -13,8 +14,8 @@ def snapshot(source, destination):
     fd, name = tempfile.mkstemp(prefix=".snapshot-", dir=destination.parent)
     os.close(fd)
     try:
-        with sqlite3.connect(source.as_uri()+"?mode=ro", uri=True) as src:
-            with sqlite3.connect(name) as dst:
+        with closing(sqlite3.connect(source.as_uri()+"?mode=ro", uri=True)) as src:
+            with closing(sqlite3.connect(name)) as dst:
                 src.backup(dst)
                 if dst.execute("PRAGMA integrity_check").fetchone() != ("ok",):
                     raise ValueError("Snapshot integrity check failed")
