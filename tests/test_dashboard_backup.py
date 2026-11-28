@@ -14,7 +14,7 @@ class DashboardBackupTests(unittest.TestCase):
                 db.execute("INSERT INTO draws VALUES ('007')")
             first, second = create_backup(root), create_backup(root)
             self.assertNotEqual(first, second)
-            self.assertEqual(first.parent, root / "backups")
+            self.assertTrue(first.parent.samefile(root / "backups"))
             for path in (first, second):
                 with closing(sqlite3.connect(path)) as db:
                     self.assertEqual(db.execute("SELECT numbers FROM draws").fetchone(), ("007",))
