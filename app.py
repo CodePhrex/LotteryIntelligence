@@ -1,10 +1,19 @@
 import streamlit as st
 import pandas as pd
 import csv, io
+from dashboard_backup import create_backup
 from lottery import DATA,GAMES,FIELDS,SOURCES,save,sync
 st.set_page_config(page_title='Lottery Intelligence',layout='wide')
 st.title('Lottery Intelligence | CodePhrex')
 st.caption('Historical research — local archive')
+with st.sidebar:
+    st.header('Archive protection')
+    if st.button('Create database backup', disabled=not (DATA/'draws.sqlite').is_file()):
+        try:
+            path = create_backup(DATA)
+            st.success(f'Backup saved: {path.name}')
+        except Exception as e:
+            st.error(f'Backup failed: {e}')
 game=st.selectbox('Game',GAMES)
 if st.button('Sync national sources'):
     for g in SOURCES:
