@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import csv, io
+from draw_analytics import frequencies
 from dashboard_backup import create_backup
 from lottery import DATA,GAMES,FIELDS,SOURCES,save,sync
 st.set_page_config(page_title='Lottery Intelligence',layout='wide')
@@ -31,6 +32,16 @@ if p.exists():
     df=pd.read_csv(p,dtype=str,keep_default_na=False)
     st.metric('Archived drawings',len(df))
     st.dataframe(df,use_container_width=True)
+    with st.expander('Descriptive frequency analysis'):
+        try:
+            stats = frequencies(game, df.to_dict('records'))
+            for label, counts in [('Main numbers / digits', stats['main']), ('Bonus balls', stats['bonus'])] + [(f'Digit position {i}', c) for i, c in stats['positions'].items()]:
+                if counts:
+                    st.subheader(label)
+                    st.bar_chart(pd.Series(counts, name='Occurrences').sort_index())
+            st.caption('Historical counts only; not a prediction of future draws.')
+        except ValueError as e:
+            st.error(str(e))
     st.download_button('Export game CSV',p.read_bytes(),p.name,'text/csv')
 else: st.info('No local archive yet.')
 if (DATA/'master.csv').exists(): st.download_button('Export master CSV',(DATA/'master.csv').read_bytes(),'master.csv','text/csv')
